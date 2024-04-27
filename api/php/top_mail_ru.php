@@ -7,42 +7,46 @@ class TopMailRu
 {
     const BASE_URL = 'https://top.mail.ru';
 
+    // Instance variables
     private $apiKey;
     private $returnAsArray;
     private $session;
 
     /**
      * TopMailRu constructor.
-     * @param $apiKey
-     * @param $returnAsArray
+     * @param string $apiKey API key
+     * @param bool $returnAsArray Whether to return as array
      */
-    public function __construct($apiKey, $returnAsArray)
+    public function __construct(string $apiKey, bool $returnAsArray)
     {
         $this->apiKey = $apiKey;
         $this->returnAsArray = $returnAsArray;
     }
 
     /**
-     * @param $o1
-     * @param $o2
-     * @return string
+     * Performs bitwise XOR operation between two strings.
+     * @param string $o1 String 1
+     * @param string $o2 String 2
+     * @return string Result of XOR operation
      */
-    protected function bitxor($o1, $o2)
+    protected function bitxor(string $o1, string $o2): string
     {
         $result = '';
         $runs = strlen($o1);
-        for ($i = 0; $i < $runs; $i++)
+        for ($i = 0; $i < $runs; $i++) {
             $result .= $o1[$i] ^ $o2[$i];
+        }
         return $result;
     }
 
     /**
-     * @param $path
-     * @param $argsArray
-     * @param $returnAsArray
-     * @return mixed|null
+     * Performs an HTTP request.
+     * @param string $path URL path
+     * @param array $argsArray Array of arguments
+     * @param bool $returnAsArray Whether to return as array
+     * @return mixed|null Returned data
      */
-    protected function request($path, $argsArray, $returnAsArray)
+    protected function request(string $path, array $argsArray, bool $returnAsArray): mixed
     {
         $url = static::BASE_URL . $path . '?' . http_build_query($argsArray);
         $ch = curl_init();
@@ -54,17 +58,19 @@ class TopMailRu
             curl_close($ch);
             $data = json_decode($data, $returnAsArray);
         } catch (Exception $e) {
+            // Improve exception handling here
             echo "Exception: {$e->getCode()} ({$e->getMessage()})", PHP_EOL;
         }
         return $data;
     }
 
     /**
-     * @return array
+     * Returns the key and session arguments.
+     * @return array Key and session arguments
      */
-    protected function getKeyAndSession()
+    protected function getKeyAndSession(): array
     {
-        $args = array();
+        $args = [];
         if ($this->apiKey) {
             $args['apikey'] = $this->apiKey;
         }
@@ -75,22 +81,24 @@ class TopMailRu
     }
 
     /**
-     * @param $args
-     * @return mixed|null
+     * Registers a site.
+     * @param array $args Arguments for registration
+     * @return mixed|null Response from the server
      */
-    public function registerSite($args)
+    public function registerSite(array $args): mixed
     {
         $args += $this->getKeyAndSession();
         return $this->request('/json/add', $args, $this->returnAsArray);
     }
 
     /**
-     * @param $id
-     * @param $password
-     * @param $args
-     * @return mixed|null
+     * Edits a site.
+     * @param int $id Site ID
+     * @param string $password Site password
+     * @param array $args Arguments for editing
+     * @return mixed|null Response from the server
      */
-    public function editSite($id, $password, $args)
+    public function editSite(int $id, string $password, array $args): mixed
     {
         $args += $this->getKeyAndSession();
         $args['id'] = $id;
@@ -99,12 +107,13 @@ class TopMailRu
     }
 
     /**
-     * @param $id
-     * @param $password
-     * @param $args
-     * @return mixed|null
+     * Retrieves code for a site.
+     * @param int $id Site ID
+     * @param string $password Site password
+     * @param array $args Additional arguments
+     * @return mixed|null Response from the server
      */
-    public function getCode($id, $password, $args)
+    public function getCode(int $id, string $password, array $args): mixed
     {
         $args += $this->getKeyAndSession();
         $args['id'] = $id;
@@ -113,19 +122,21 @@ class TopMailRu
     }
 
     /**
-     * @param $session
+     * Sets the session.
+     * @param string $session Session ID
      */
-    public function setSession($session)
+    public function setSession(string $session): void
     {
         $this->session = $session;
     }
 
     /**
-     * @param $id
-     * @param $password
-     * @return bool
+     * Logs in.
+     * @param int $id Site ID
+     * @param string $password Site password
+     * @return bool Whether the login was successful
      */
-    public function login($id, $password)
+    public function login(int $id, string $password): bool
     {
         $args = array_merge(
             array('id' => $id, 'password' => $password, 'action' => 'json'),
@@ -139,18 +150,18 @@ class TopMailRu
     }
 
     /**
-     * @param $id
-     * @param $password
-     * @param $type
-     * @param $args
-     * @return mixed|null
+     * Retrieves statistics for a site.
+     * @param int $id Site ID
+     * @param string $password Site password
+     * @param string $type Type of statistics
+     * @param array $args Additional arguments
+     * @return mixed|null Response from the server
      */
-    public function getStat($id, $password, $type, $args)
+    public function getStat(int $id, string $password, string $type, array $args): mixed
     {
         $args += $this->getKeyAndSession();
         $args['id'] = $id;
         $args['password'] = $password;
         return $this->request('/json/' . $type, $args, $this->returnAsArray);
     }
-
 }
